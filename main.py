@@ -33,15 +33,15 @@
 # # output
 # print(response.content)
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import PromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI              #importing wrapper that acts as a mediator between client and LLM
+from langchain_core.prompts import PromptTemplate               
 from langchain_core.output_parsers import JsonOutputParser               #CONVERT that JSON → Python dict
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-# 1. LLM
+# 1. LLM                              # we create an LLM object
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     google_api_key=os.getenv("GOOGLE_API_KEY")
@@ -50,7 +50,7 @@ llm = ChatGoogleGenerativeAI(
 # 2. Parser
 parser = JsonOutputParser()            
 
-# 3. Prompt      #FORCE model to output JSON (using prompt)
+# 3. Prompt                              #FORCE model to output JSON (using prompt)
 
 
 prompt = PromptTemplate(

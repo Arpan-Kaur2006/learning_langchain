@@ -1,61 +1,24 @@
-# 🧠 LangChain + Gemini Prompt Engineering Demo
+# Agentic Research Assistant 🤖
 
-## 📌 Overview
+An advanced AI-powered research engine built with **LangChain** and **Google Gemini**. This project moves beyond simple prompting to create a structured, "agentic" system capable of processing information into machine-readable formats.
 
-This project demonstrates how to use **LangChain with Google's Gemini API** to build a structured and reusable prompt pipeline.
+## 🚀 Day 1 Progress: Structured Output Control
+The core foundation of any agentic system is the ability to communicate with other software. Today, I successfully implemented **Structured Output Parsing**.
 
-It focuses on:
+### Key Achievements:
+* **LCEL Implementation:** Utilized LangChain Expression Language (LCEL) to chain Prompts, LLMs, and Parsers.
+* **JSON Enforcement:** Engineered prompts to force the LLM to return valid JSON objects instead of unstructured text.
+* **Data Integration:** Integrated `JsonOutputParser` to automatically convert LLM responses into Python dictionaries for seamless backend processing.
 
-* Prompt Engineering
-* Prompt Templates
-* LangChain Chains
+### Tech Stack:
+* **Language:** Python 3.x
+* **Framework:** LangChain
+* **LLM:** Google Gemini 1.5 Flash (via `langchain-google-genai`)
+* **Environment:** `python-dotenv` for secure API key management
 
----
-
-## ⚙️ How It Works
-
-1. A **PromptTemplate** is created with a variable `{topic}`.
-2. The template is combined with the LLM using a **chain (`|`) operator**.
-3. Input is passed dynamically using a dictionary.
-4. The LLM generates a structured response.
-
----
-
-## 💻 Code Explanation
-
-* `ChatGoogleGenerativeAI` → connects LangChain to Gemini API
-* `PromptTemplate` → creates reusable prompts
-* `chain = prompt | llm` → builds a pipeline
-* `invoke()` → executes the pipeline
-* `.content` → extracts the final response
+## 🛠️ How it works
+Current execution flow:
+`Input (Topic) -> PromptTemplate -> Gemini LLM -> JsonOutputParser -> Python Dictionary`
 
 ---
-
-## 🚀 Example Output
-
-Input:
-
-```
-topic = "dogs"
-```
-
-Output:
-
-* Dogs are loyal animals
-* They are commonly kept as pets
-
----
-
-## 🔐 Note
-
-API keys are managed using environment variables (`os.getenv`) for security and should not be hardcoded.
-
----
-
-## 📚 Learning Outcome
-
-This project builds a foundation for:
-
-* RAG systems
-* AI agents
-* Automated research tools
+*Next Step: Implementing Conversation Memory to handle multi-turn research dialogues.*
