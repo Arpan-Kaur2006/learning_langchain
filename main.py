@@ -1,84 +1,76 @@
 
 
-# from langchain_google_genai import ChatGoogleGenerativeAI
-# from langchain_core.prompts import PromptTemplate
-# from dotenv import load_dotenv
 
-# from langchain_core.output_parsers import JsonOutputParser            #CONVERT that JSON → Python dict
-# import os
 
-# load_dotenv()
-
-# # create model
-# llm = ChatGoogleGenerativeAI(
-#     model="gemini-2.5-flash",
-#     google_api_key=os.getenv("GOOGLE_API_KEY")
-# )
-
-# # create prompt
-# prompt = PromptTemplate.from_template(
-#     """
-#     Explain {topic} in:
-#     - 2 bullet points
-#     - simple language
-#     """
-# )
-
-# # chain
-# chain = prompt | llm
-
-# # run
-# response = chain.invoke({"topic": "dogs"})
-
-# # output
-# print(response.content)
-
-from langchain_google_genai import ChatGoogleGenerativeAI              #importing wrapper that acts as a mediator between client and LLM
-from langchain_core.prompts import PromptTemplate               
-from langchain_core.output_parsers import JsonOutputParser               #CONVERT that JSON → Python dict
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_pinecone import PineconeVectorStore
+from langchain_core.prompts import ChatPromptTemplate
 
 load_dotenv()
 
-# 1. LLM                              # we create an LLM object
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GOOGLE_API_KEY")
+# --- CONFIGURATION (Change these to generalize) ---
+MODEL_NAME = "gemini-2.5-flash"
+EMBEDDING_MODEL = "gemini-embedding-001"
+INDEX_NAME = "research-assistant"
+
+# This is your "System Instructions" - change this to change the AI's personality
+SYSTEM_PROMPT = """
+You are a highly capable AI Assistant. 
+Your primary goal is to provide continuity by referencing the HISTORY provided below.
+If the HISTORY contains personal details (like name, age, or goals), always acknowledge them.
+If HISTORY is empty, start fresh but be ready to remember.
+
+HISTORY:
+{history}
+
+CURRENT QUESTION: {input}
+"""
+
+# --- SETUP ---
+llm = ChatGoogleGenerativeAI(model=MODEL_NAME)
+embeddings = GoogleGenerativeAIEmbeddings(model=EMBEDDING_MODEL)
+
+vector_db = PineconeVectorStore(
+    index_name=INDEX_NAME, 
+    embedding=embeddings,
+    pinecone_api_key=os.getenv("PINECONE_API_KEY")
 )
 
-# 2. Parser
-parser = JsonOutputParser()            
+# --- LOGIC ---
+def get_memory_context(query):
+    try:
+        # Search the cloud for context
+        docs = vector_db.similarity_search(query, k=3)
+        return "\n".join([d.page_content for d in docs]) if docs else ""
+    except Exception:
+        return ""
 
-# 3. Prompt                              #FORCE model to output JSON (using prompt)
+def ask_ai(user_input):
+    # 1. Retrieve context
+    history = get_memory_context(user_input)
+    
+    # 2. Build Prompt
+    prompt = ChatPromptTemplate.from_template(SYSTEM_PROMPT)
+    
+    # 3. Generate Response
+    chain = prompt | llm
+    response = chain.invoke({"input": user_input, "history": history})
+    
+    # 4. Store interaction (This makes it remember)
+    interaction = f"User: {user_input}\nAI: {response.content}"
+    vector_db.add_texts([interaction])
+    
+    return response.content
 
-
-prompt = PromptTemplate(
-    template="""
-You are a helpful assistant.
-
-Explain {topic} simply.
-
-Format your response EXACTLY as JSON:
-
-{{
-  "topic_name": "...",
-  "facts": ["...", "..."],                    
-  "fun_fact": "..."
-}}
-
-Do not write anything outside JSON.
-""",
-    input_variables=["topic"]
-)
-
-# 4. Chain
-chain = prompt | llm | parser
-
-# 5. Run
-response = chain.invoke({"topic": "Quantum Computing"})
-
-# 6. Output
-print(type(response))
-print(response)
-print(response["facts"])
+# --- EXECUTION ---
+if __name__ == "__main__":
+    print(f"--- AI System Online (Model: {MODEL_NAME}) ---")
+    while True:
+        user_msg = input("You: ")
+        if user_msg.lower() in ["exit", "quit", "bye"]:
+            print("AI: Goodbye!")
+            break
+        
+        print(f"\nAI: {ask_ai(user_msg)}\n")
