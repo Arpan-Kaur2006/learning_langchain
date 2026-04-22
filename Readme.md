@@ -22,3 +22,21 @@ Current execution flow:
 
 ---
 *Next Step: Implementing Conversation Memory to handle multi-turn research dialogues.*
+## 📅 Day 2: The Infinite Memory Update
+
+### 🚀 Overview
+Today, I moved the project from "Short-term memory" to **"Persistent Cloud Memory."** The assistant no longer forgets the conversation when the script is restarted.
+
+### 🛠️ Tech Stack Added
+- **Vector Database:** [Pinecone](https://www.pinecone.io/) (Serverless Cloud)
+- **Embeddings:** `gemini-embedding-001`
+- **Orchestration:** LangChain (VectorStore & Retrieval Chains)
+
+### 🧠 Core Concepts Implemented
+- **Semantic Retrieval:** Instead of keyword matching, the system uses high-dimensional math (vectors) to find related ideas in past conversations.
+- **Fixed Context Overhead ($k=3$):** To prevent LLM context window overflow, the system only retrieves the top 3 most relevant interactions.
+- **State Persistence:** Conversation state is stored in the cloud, allowing for cross-session continuity.
+
+### 🧪 Verification Test
+- **Test:** Told the AI about "Quantum Computing," restarted the script, and asked about "AI Research."
+- **Result:** The AI successfully referenced the previous Quantum Computing session to provide a unified research context.
